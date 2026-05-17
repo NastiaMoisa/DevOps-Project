@@ -1,0 +1,13 @@
+src/MapClient/node_modules
+src/MapClient/dist
+src/CommunicationControl/.idea
+src/CommunicationControl/.vs
+bin
+obj
+Logs
+.vscode
+build
+.env
+src/CommunicationControl/DevOpsProject.sln.DotSettings.user
+src/CommunicationControl/DevOpsProject.sln.DotSettings.user
+src/CommunicationControl/DevOpsProject.sln.DotSettings.user

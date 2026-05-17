@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hive-mind
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hive-mind
+  template:
+    metadata:
+      labels:
+        app: hive-mind
+    spec:
+      containers:
+        - name: hive-mind
+          image: registry.gitlab.com/your-group/devops-project/hive-mind:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5149
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "10m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          env:
+            - name: CommunicationConfiguration__RequestSchema
+              value: http
+            - name: CommunicationConfiguration__CommunicationControlIP
+              value: com-control
+            - name: CommunicationConfiguration__CommunicationControlPort
+              value: "80"
+            - name: CommunicationConfiguration__CommunicationControlPath
+              value: api/v1/hive
+            - name: CommunicationConfiguration__HiveIP
+              value: hive-mind
+            - name: CommunicationConfiguration__HivePort
+              value: "5149"
+            - name: CommunicationConfiguration__HiveID
+              value: "1"
+      imagePullSecrets:
+        - name: gitlab-registry-secret

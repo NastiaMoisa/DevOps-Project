@@ -1,0 +1,43 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  communication-control:
+    image: ${CI_REGISTRY_IMAGE}/communication-control:${IMAGE_TAG}
+    restart: unless-stopped
+    depends_on:
+      - redis
+    environment:
+      Redis__ConnectionString: redis:6379
+      BasePath: ""
+    ports:
+      - "8080:8080"
+
+  hive-mind:
+    image: ${CI_REGISTRY_IMAGE}/hive-mind:${IMAGE_TAG}
+    restart: unless-stopped
+    depends_on:
+      - communication-control
+    environment:
+      CommunicationConfiguration__RequestSchema: http
+      CommunicationConfiguration__CommunicationControlIP: communication-control
+      CommunicationConfiguration__CommunicationControlPort: 8080
+      CommunicationConfiguration__CommunicationControlPath: api/v1/hive
+      CommunicationConfiguration__HiveIP: hive-mind
+      CommunicationConfiguration__HivePort: 5149
+      CommunicationConfiguration__HiveID: 1
+    ports:
+      - "5149:5149"
+
+  map-client:
+    image: ${CI_REGISTRY_IMAGE}/map-client:${IMAGE_TAG}
+    restart: unless-stopped
+    depends_on:
+      - communication-control
+    ports:
+      - "3000:80"
+    volumes:
+      - ./deployment/compose/map-client.config.json:/usr/share/nginx/html/config.json:ro

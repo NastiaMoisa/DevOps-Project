@@ -1,0 +1,55 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: devops-project-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  communication-control:
+    build:
+      context: ./src/CommunicationControl
+      dockerfile: ./DevOpsProject/Dockerfile
+    container_name: devops-project-communication-control
+    depends_on:
+      - redis
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://0.0.0.0:8080}
+      Redis__ConnectionString: ${REDIS_CONNECTION:-redis:6379}
+      BasePath: ""
+    ports:
+      - "8080:8080"
+
+  hive-mind:
+    build:
+      context: ./src/CommunicationControl
+      dockerfile: ./DevOpsProject.HiveMind.API/Dockerfile
+    container_name: devops-project-hive-mind
+    depends_on:
+      - communication-control
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:5149
+      CommunicationConfiguration__RequestSchema: http
+      CommunicationConfiguration__CommunicationControlIP: communication-control
+      CommunicationConfiguration__CommunicationControlPort: 8080
+      CommunicationConfiguration__CommunicationControlPath: api/v1/hive
+      CommunicationConfiguration__HiveIP: hive-mind
+      CommunicationConfiguration__HivePort: 5149
+      CommunicationConfiguration__HiveID: 1
+    ports:
+      - "5149:5149"
+
+  map-client:
+    build:
+      context: ./src/MapClient
+      dockerfile: ./Dockerfile
+    container_name: devops-project-map-client
+    depends_on:
+      - communication-control
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./deployment/compose/map-client.config.json:/usr/share/nginx/html/config.json:ro

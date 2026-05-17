@@ -1,0 +1,32 @@
+services:
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: devops-project-loki
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - ./monitoring/loki/config.yml:/etc/loki/config.yml:ro
+    ports:
+      - "3100:3100"
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: devops-project-promtail
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    volumes:
+      - ./monitoring/promtail/config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: devops-project-grafana
+    depends_on:
+      - loki
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3001:3000"

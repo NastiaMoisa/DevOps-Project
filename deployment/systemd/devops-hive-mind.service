@@ -1,0 +1,21 @@
+[Unit]
+Description=DevOps Project HiveMind
+After=network.target devops-api.service
+Requires=devops-api.service
+
+[Service]
+User=moisa_io36
+WorkingDirectory=/home/moisa_io36/app/hive-mind/published
+ExecStart=/usr/bin/dotnet /home/moisa_io36/app/hive-mind/published/DevOpsProject.HiveMind.API.dll
+Restart=always
+RestartSec=10
+Environment=CommunicationConfiguration__RequestSchema=http
+Environment=CommunicationConfiguration__CommunicationControlIP=localhost
+Environment=CommunicationConfiguration__CommunicationControlPort=8080
+Environment=CommunicationConfiguration__CommunicationControlPath=api/v1/hive
+Environment=CommunicationConfiguration__HiveIP=localhost
+Environment=CommunicationConfiguration__HivePort=5149
+Environment=CommunicationConfiguration__HiveID=1
+
+[Install]
+WantedBy=multi-user.target
