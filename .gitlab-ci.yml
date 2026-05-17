@@ -76,7 +76,11 @@ deploy-vps:
       GRAFANA_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       EOF
-    - scp -r deploy-package/* "$VPS_USER@$VPS_HOST:$VPS_APP_DIR/"
+    - ssh "$VPS_USER@$VPS_HOST" "mkdir -p '$VPS_APP_DIR/deployment/compose'"
+    - scp deploy-package/docker-compose.prod.yml "$VPS_USER@$VPS_HOST:$VPS_APP_DIR/docker-compose.prod.yml"
+    - scp deploy-package/deploy-vps.sh "$VPS_USER@$VPS_HOST:$VPS_APP_DIR/deploy-vps.sh"
+    - scp deploy-package/.env "$VPS_USER@$VPS_HOST:$VPS_APP_DIR/.env"
+    - scp deploy-package/deployment/compose/map-client.config.json "$VPS_USER@$VPS_HOST:$VPS_APP_DIR/deployment/compose/map-client.config.json"
     - |
       ssh "$VPS_USER@$VPS_HOST" "
       cd $VPS_APP_DIR &&
