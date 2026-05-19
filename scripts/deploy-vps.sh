@@ -27,6 +27,20 @@ fi
 
 cd "${APP_DIR}"
 
+set -a
+. "${APP_DIR}/.env"
+set +a
+
+PUBLIC_API_URL="${PUBLIC_API_URL:-http://188.245.181.186:8080/api/v1/client}"
+MAP_CLIENT_CONFIG_DIR="${APP_DIR}/deployment/compose"
+MAP_CLIENT_CONFIG_FILE="${MAP_CLIENT_CONFIG_DIR}/map-client.config.json"
+
+mkdir -p "${MAP_CLIENT_CONFIG_DIR}"
+printf '{ "API": "%s" }\n' "${PUBLIC_API_URL}" > "${MAP_CLIENT_CONFIG_FILE}"
+
+echo "Using map-client config:"
+cat "${MAP_CLIENT_CONFIG_FILE}"
+
 docker compose --env-file .env -f "${COMPOSE_FILE}" pull
 docker compose --env-file .env -f "${COMPOSE_FILE}" up -d
 docker compose --env-file .env -f "${COMPOSE_FILE}" ps
