@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/devops-project}"
+APP_DIR="${APP_DIR:-$(pwd)}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
 
 if ! command -v docker >/dev/null 2>&1; then
