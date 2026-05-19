@@ -1,5 +1,6 @@
 stages:
   - validate
+  - publish
   - docker
   - deploy
 
@@ -26,17 +27,37 @@ frontend-build:
     - npm install
     - npm run build
 
+publish-backend:
+  stage: publish
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore src/CommunicationControl/DevOpsProject.sln
+    - dotnet publish src/CommunicationControl/DevOpsProject/DevOpsProject.CommunicationControl.API.csproj -c Release -o publish/communication-control /p:UseAppHost=false
+    - dotnet publish src/CommunicationControl/DevOpsProject.HiveMind.API/DevOpsProject.HiveMind.API.csproj -c Release -o publish/hive-mind /p:UseAppHost=false
+  artifacts:
+    name: "backend-publish-$CI_COMMIT_REF_SLUG"
+    paths:
+      - publish/communication-control/
+      - publish/hive-mind/
+    expire_in: 1 day
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
 docker-images:
   stage: docker
   image: docker:27
   services:
     - docker:27-dind
+  needs:
+    - job: publish-backend
+      artifacts: true
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
     - export IMAGE_TAG="${CI_COMMIT_TAG:-$CI_COMMIT_REF_SLUG}"
-    - docker build -t "$COMMUNICATION_CONTROL_IMAGE:$IMAGE_TAG" -f src/CommunicationControl/DevOpsProject/Dockerfile src/CommunicationControl
-    - docker build -t "$HIVE_MIND_IMAGE:$IMAGE_TAG" -f src/CommunicationControl/DevOpsProject.HiveMind.API/Dockerfile src/CommunicationControl
+    - docker build -t "$COMMUNICATION_CONTROL_IMAGE:$IMAGE_TAG" -f deployment/docker/communication-control.runtime.Dockerfile publish/communication-control
+    - docker build -t "$HIVE_MIND_IMAGE:$IMAGE_TAG" -f deployment/docker/hive-mind.runtime.Dockerfile publish/hive-mind
     - docker build -t "$MAP_CLIENT_IMAGE:$IMAGE_TAG" -f src/MapClient/Dockerfile src/MapClient
     - docker push "$COMMUNICATION_CONTROL_IMAGE:$IMAGE_TAG"
     - docker push "$HIVE_MIND_IMAGE:$IMAGE_TAG"
